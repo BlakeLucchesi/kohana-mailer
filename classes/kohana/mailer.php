@@ -5,6 +5,8 @@ abstract class Kohana_Mailer {
   public $layout = 'blank';
   
   public $template = '';
+
+	public $formats = array('text');
   
   /**
    * A running log of all email transactions sent during a request.
@@ -31,8 +33,8 @@ abstract class Kohana_Mailer {
    */
   public function __construct() {
     $this->data = func_get_args();
-    $this->config = Kohana::$config->load('mailer');
-    $driver_class = 'Mailer_Driver_'. ucwords($this->config->driver);
+    $this->config = Kohana::$config->load('mailer')->as_array();
+    $driver_class = 'Mailer_Driver_'. ucwords($this->config['driver']);
     $this->driver = new $driver_class;
   }
   
@@ -60,12 +62,14 @@ abstract class Kohana_Mailer {
    * Renders the email contents given the available views and template properties.
    */
   public function render() {
-    // if ($this->template) {
-    //   var_dump($this->layout);
-    //   var_dump($this->template);
-    //   $this->layout = View::factory('');
-    //   $this->content = View::factory('');
-    // }
+    if ($this->template) {
+			$filepath = sprintf('%s%s%s', $this->folder, DIRECTORY_SEPARATOR, $this->template);
+			foreach ($this->formats as $format) {
+				$layout = View::factory('mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout .'.'. $format);
+				$layout->content = View::factory($filepath .'.'. $format);
+				$this->content[$format] = $layout->render();
+			}
+    }
   }
   
   /**
@@ -73,6 +77,7 @@ abstract class Kohana_Mailer {
    */
   public function deliver() {
     $this->driver->deliver($this);
+    // Mailer::$log[] = $this;
   }
   
 }
