@@ -33,8 +33,8 @@ abstract class Kohana_Mailer {
    */
   public function __construct() {
     $this->data = func_get_args();
-    $this->config = Kohana::$config->load('mailer')->as_array();
-    $driver_class = 'Mailer_Driver_'. ucwords($this->config['driver']);
+    $this->config = Kohana::$config->load('mailer');
+    $driver_class = 'Mailer_Driver_'. ucwords($this->config->driver);
     $this->driver = new $driver_class;
   }
   
