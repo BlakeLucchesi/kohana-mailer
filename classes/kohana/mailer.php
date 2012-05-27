@@ -107,7 +107,6 @@ abstract class Kohana_Mailer {
 			}
 		}
 		call_user_func_array(array($mailer_class, 'build'), $args);
-		$mailer_class->render();
 		return $mailer_class;
 	}
 	
@@ -115,17 +114,15 @@ abstract class Kohana_Mailer {
 	 * Renders the email contents given the available views and template properties.
 	 */
 	public function render() {
-		if ($this->auto_render && $this->template) {
-			$template_path = 'mailer'. DIRECTORY_SEPARATOR . $this->name . DIRECTORY_SEPARATOR . $this->template;
-			$layout_path = 'mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout;
-			foreach ($this->formats as $format) {
-				$layout = View::factory($layout_path .'.'. $format);
-				$layout->content = View::factory($template_path .'.'. $format);
-				foreach ($this->data as $key => $value) {
-					$layout->content->$key = $value;
-				}
-				$this->content[$format] = $layout->render();
+		$template_path = 'mailer'. DIRECTORY_SEPARATOR . $this->name . DIRECTORY_SEPARATOR . $this->template;
+		$layout_path = 'mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout;
+		foreach ($this->formats as $format) {
+			$layout = View::factory($layout_path .'.'. $format);
+			$layout->content = View::factory($template_path .'.'. $format);
+			foreach ($this->data as $key => $value) {
+				$layout->content->$key = $value;
 			}
+			$this->content[$format] = $layout->render();
 		}
 	}
 	
@@ -133,6 +130,9 @@ abstract class Kohana_Mailer {
 	 * Deliver the email using the specified driver.
 	 */
 	public function deliver() {
+		if ($this->auto_render) {
+			$this->render();
+		}
 		$this->driver->deliver($this, $this->config->driver_options);
 		if ($this->log_deliveries) {
 			Mailer::$deliveries[] = $this;
