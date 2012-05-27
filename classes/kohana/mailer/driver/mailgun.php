@@ -18,6 +18,9 @@ class Kohana_Mailer_Driver_Mailgun implements Mailer_Driver {
 		
 		$request = curl_init($url);
 		curl_setopt($request, CURLOPT_USERPWD, $apikey);
+		curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+		
+		// Additional curl request options.
 		curl_setopt($request, CURLOPT_MAXREDIRS, 3);
 		curl_setopt($request, CURLOPT_FOLLOWLOCATION, 0);
 		curl_setopt($request, CURLOPT_RETURNTRANSFER, 1);
@@ -28,11 +31,8 @@ class Kohana_Mailer_Driver_Mailgun implements Mailer_Driver {
 		curl_setopt($request, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($request, CURLOPT_POST, true);
 		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
 		$response = curl_exec($request);
 		
-var_dump($response);
-
 		curl_close($request);
 	}
 }
