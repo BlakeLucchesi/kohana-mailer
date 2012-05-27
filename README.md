@@ -34,8 +34,14 @@ Below is an example showing how to send the mailer in your application and the s
 Available Properties
 ====================
 
-**$to** The address to which the email should be sent
+**$to** - The address to which the email should be sent
 
-**$from** The from address
+**$from** - The from address
 
-**$formats** An array of supported mail formats, typically this would include _text_ and/or _html_.
+**$auto_render** - Whether or not to render the template automatically just before deliver() is executed on the mail driver.  If this is FALSE, you should ensure to set the contents of the email inside of $content[$format] where $format is each of the formats you wish to send the email in.
+
+**$formats** - An array of supported mail formats, typically this would include _text_ and/or _html_.
+
+**$template** - The name of the template to render for each format. Defaults to $name/$name, which maps to views/mailer/$name/$name.$format.php.  Make sure not to include the $format suffix as part of the template name.
+
+**$layout** - The layout template that should be used as a shell for rendering the template.  By default its set to the 'blank' layout as included in this module.
