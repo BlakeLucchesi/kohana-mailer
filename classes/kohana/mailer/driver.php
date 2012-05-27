@@ -2,6 +2,6 @@
 
 interface Kohana_Mailer_Driver {
 
-  function deliver(Mailer $mailer);
+	function deliver(Mailer $mailer);
 
 }
