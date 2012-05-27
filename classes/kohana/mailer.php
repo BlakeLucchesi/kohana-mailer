@@ -135,6 +135,9 @@ abstract class Kohana_Mailer {
 		if ($this->auto_render) {
 			$this->render();
 		}
+		if ( ! isset($this->from)) {
+			$this->from = $this->config->from;
+		}
 		$this->driver->deliver($this, $this->config->driver_options);
 		if ($this->log_deliveries) {
 			Mailer::$deliveries[] = $this;
