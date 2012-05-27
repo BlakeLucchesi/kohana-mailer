@@ -14,14 +14,17 @@ abstract class Kohana_Mailer {
 	public static $log = array();
 	
 	/**
-	 * The loaded configuration values.
+	 * Mailer configuration values from config/mailer.php.
 	 */
 	protected $config;
 	
 	/**
-	 * 
+	 * Used to store the parameters passed into factory() so that
+	 * they are available when build() is called, and then also
+	 * passed into the view templates using the same name as given
+	 * to them in the mailer's build() function definition.
 	 */
-	protected $data;
+	protected $params = array();
 	
 	/**
 	 * The driver to send emails with.
@@ -32,7 +35,6 @@ abstract class Kohana_Mailer {
 	 * Initialize a mailer class.
 	 */
 	public function __construct() {
-		$this->data = func_get_args();
 		$this->config = Kohana::$config->load('mailer');
 		$driver_class = 'Mailer_Driver_'. ucwords($this->config->driver);
 		$this->driver = new $driver_class;
@@ -50,7 +52,17 @@ abstract class Kohana_Mailer {
 		$mailer_class = new $mailer_class();
 		$mailer_class->folder = 'mailer/'. $name;
 		$mailer_class->template = $name;
+		
+		// Reflection to call build() with the additional parameters passed into this method.
 		$args = array_slice(func_get_args(), 1);
+		$c = new ReflectionClass($mailer_class);
+		foreach ($c->getMethods() as $m) {
+			if ($m->name == 'build') {
+				foreach ($m->getParameters() as $key => $param) {
+					$mailer_class->params[$param->name] = $args[$key];
+				}
+			}
+		}
 		call_user_func_array(array($mailer_class, 'build'), $args);
 		$mailer_class->render();
 		return $mailer_class;
@@ -65,6 +77,9 @@ abstract class Kohana_Mailer {
 			foreach ($this->formats as $format) {
 				$layout = View::factory('mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout .'.'. $format);
 				$layout->content = View::factory($filepath .'.'. $format);
+				foreach ($this->params as $key => $value) {
+					$layout->content->$key = $value;
+				}
 				$this->content[$format] = $layout->render();
 			}
 		}
