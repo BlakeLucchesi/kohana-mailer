@@ -6,7 +6,7 @@ abstract class Kohana_Mailer {
   
   public $template = '';
 
-	public $formats = array('text');
+  public $formats = array('text');
   
   /**
    * A running log of all email transactions sent during a request.
@@ -63,12 +63,12 @@ abstract class Kohana_Mailer {
    */
   public function render() {
     if ($this->template) {
-			$filepath = sprintf('%s%s%s', $this->folder, DIRECTORY_SEPARATOR, $this->template);
-			foreach ($this->formats as $format) {
-				$layout = View::factory('mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout .'.'. $format);
-				$layout->content = View::factory($filepath .'.'. $format);
-				$this->content[$format] = $layout->render();
-			}
+      $filepath = sprintf('%s%s%s', $this->folder, DIRECTORY_SEPARATOR, $this->template);
+      foreach ($this->formats as $format) {
+        $layout = View::factory('mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout .'.'. $format);
+        $layout->content = View::factory($filepath .'.'. $format);
+        $this->content[$format] = $layout->render();
+      }
     }
   }
   
