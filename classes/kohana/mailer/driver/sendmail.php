@@ -2,9 +2,8 @@
 
 abstract class Kohana_Mailer_Driver_Sendmail implements Kohana_Mailer_Driver {
 	
-	public function deliver($mailer) {
-		var_dump("sending email via sendmail driver");
-		// mail($mailer->to, $mailer->from, $mailer->subject, $mailer->content);
+	public function deliver(Mailer $mailer, $options = array()) {
+		Kohana::$log->add(Log::INFO, 'Sending email via sendmail driver. Email details: :mailer', array(':mailer' => print_r($mailer, TRUE)));
 	}
 	
 }
