@@ -86,7 +86,9 @@ abstract class Kohana_Mailer {
 		$mailer_class = 'Mailer_'. ucwords($name);
 		$mailer_class = new $mailer_class();
 		$mailer_class->name = $name;
-		$mailer_class->template = $name;
+		if ( ! $mailer_class->template) {
+			$mailer_class->template = $name;
+		}
 		
 		$args = array_slice(func_get_args(), 1);
 		$c = new ReflectionClass($mailer_class);
@@ -114,7 +116,7 @@ abstract class Kohana_Mailer {
 	 * Renders the email contents given the available views and template properties.
 	 */
 	public function render() {
-		$template_path = 'mailer'. DIRECTORY_SEPARATOR . $this->name . DIRECTORY_SEPARATOR . $this->template;
+		$template_path = 'mailer'. DIRECTORY_SEPARATOR . $this->_name_to_path($this->name) . DIRECTORY_SEPARATOR . $this->_name_to_path($this->template);
 		$layout_path = 'mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout;
 		foreach ($this->formats as $format) {
 			$layout = View::factory($layout_path .'.'. $format);
@@ -125,7 +127,7 @@ abstract class Kohana_Mailer {
 			$this->content[$format] = $layout->render();
 		}
 	}
-	
+		
 	/**
 	 * Deliver the email using the specified driver.
 	 */
@@ -139,4 +141,10 @@ abstract class Kohana_Mailer {
 		}
 	}
 	
+	/**
+	 * Helper function to properly set files for autoloading.
+	 */
+	protected function _name_to_path($name) {
+		return str_replace('_', DIRECTORY_SEPARATOR, $name);
+	}
 }
