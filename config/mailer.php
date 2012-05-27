@@ -21,4 +21,9 @@ $config['driver_options'] = array();
  */
 $config['from'] = 'team@kohanaframework.org';
 
+/**
+ * Whether or not to log the delivered mailer objects for unit tests.
+ */
+$config['log_deliveries'] = Kohana::$environment != Kohana::PRODUCTION;
+
 return $config;

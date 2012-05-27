@@ -2,16 +2,39 @@
 
 abstract class Kohana_Mailer {
 	
+	/**
+	 * The name of the mailer.
+	 */
+	public $name = '';
+	
+	/**
+	 * Whether or not to auto render the defined template.
+	 *
+	 * If false, the mailer class must build $this->content['<format>'] in its own build() function.
+	 */
+	public $auto_render = TRUE;
+	
+	/**
+	 * Which view template should be used to render the email content.
+	 */
+	public $template = '';
+	
+	/**
+	 * When rendering using templates, which layout to wrap the template in.
+	 */
 	public $layout = 'blank';
 	
-	public $template = '';
-
+	/**
+	 * The formats to render.
+	 */
 	public $formats = array('text');
 	
 	/**
 	 * A running log of all email transactions sent during a request.
+	 *
+	 * To keep memory consumption low, this should be disabled in production.
 	 */
-	public static $log = array();
+	public static $deliveries = array();
 	
 	/**
 	 * Mailer configuration values from config/mailer.php.
@@ -19,23 +42,31 @@ abstract class Kohana_Mailer {
 	protected $config;
 	
 	/**
-	 * Used to store the parameters passed into factory() so that
+	 * The driver to send emails with.
+	 */
+	protected $driver;
+	
+	/**
+	 * Whether or not to keep a copy of each mailer instance in memory for testing.
+	 */
+	protected $log_deliveries = FALSE;
+	
+	/**
+	 * A keyed array of variables which get passed into the view template.
+	 *
+	 * Also used to store the parameters passed into factory() so that
 	 * they are available when build() is called, and then also
 	 * passed into the view templates using the same name as given
 	 * to them in the mailer's build() function definition.
 	 */
-	protected $params = array();
-	
-	/**
-	 * The driver to send emails with.
-	 */
-	protected $driver;
+	protected $data = array();
 	
 	/**
 	 * Initialize a mailer class.
 	 */
 	public function __construct() {
 		$this->config = Kohana::$config->load('mailer');
+		$this->log_deliveries = $this->config->log_deliveries;
 		$driver_class = 'Mailer_Driver_'. ucwords($this->config->driver);
 		$this->driver = new $driver_class;
 	}
@@ -43,23 +74,35 @@ abstract class Kohana_Mailer {
 	/**
 	 * Allow emails to be built and delivered in our app using a single line of code.
 	 *
-	 * @param string $name The name of the mailer to initialize (minus the starting "Mailer_"). Name adheres to Kohana class loader scheme.
+	 * We use method reflection to rebind the parameters defined in the mailers build()
+	 * method so they can be used with the same names in the view templates.
+	 *
+	 * @param string $name The name of the mailer to initialize (minus the starting "Mailer_"). 
+	 *                     Name adheres to Kohana class loader scheme.
 	 *
 	 * @return Mailer a loaded mailer object with which to interact.
 	 */
 	public static function factory($name) {
 		$mailer_class = 'Mailer_'. ucwords($name);
 		$mailer_class = new $mailer_class();
-		$mailer_class->folder = 'mailer/'. $name;
+		$mailer_class->name = $name;
 		$mailer_class->template = $name;
 		
-		// Reflection to call build() with the additional parameters passed into this method.
 		$args = array_slice(func_get_args(), 1);
 		$c = new ReflectionClass($mailer_class);
 		foreach ($c->getMethods() as $m) {
 			if ($m->name == 'build') {
 				foreach ($m->getParameters() as $key => $param) {
-					$mailer_class->params[$param->name] = $args[$key];
+					if (isset($args[$key])) {
+						$value = $args[$key];
+					}
+					else if ($param->isDefaultValueAvailable()) {
+						$value = $param->getDefaultValue();
+					}
+					else {
+						$value = NULL;
+					}
+					$mailer_class->data[$param->name] = $value;
 				}
 			}
 		}
@@ -72,12 +115,13 @@ abstract class Kohana_Mailer {
 	 * Renders the email contents given the available views and template properties.
 	 */
 	public function render() {
-		if ($this->template) {
-			$filepath = sprintf('%s%s%s', $this->folder, DIRECTORY_SEPARATOR, $this->template);
+		if ($this->auto_render && $this->template) {
+			$template_path = 'mailer'. DIRECTORY_SEPARATOR . $this->name . DIRECTORY_SEPARATOR . $this->template;
+			$layout_path = 'mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout;
 			foreach ($this->formats as $format) {
-				$layout = View::factory('mailer'. DIRECTORY_SEPARATOR .'layouts'. DIRECTORY_SEPARATOR . $this->layout .'.'. $format);
-				$layout->content = View::factory($filepath .'.'. $format);
-				foreach ($this->params as $key => $value) {
+				$layout = View::factory($layout_path .'.'. $format);
+				$layout->content = View::factory($template_path .'.'. $format);
+				foreach ($this->data as $key => $value) {
 					$layout->content->$key = $value;
 				}
 				$this->content[$format] = $layout->render();
@@ -90,7 +134,9 @@ abstract class Kohana_Mailer {
 	 */
 	public function deliver() {
 		$this->driver->deliver($this, $this->config->driver_options);
-		// Mailer::$log[] = $this;
+		if ($this->log_deliveries) {
+			Mailer::$deliveries[] = $this;
+		}
 	}
 	
 }
