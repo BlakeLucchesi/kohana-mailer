@@ -50,10 +50,8 @@ abstract class Kohana_Mailer {
 		$mailer_class = new $mailer_class();
 		$mailer_class->folder = 'mailer/'. $name;
 		$mailer_class->template = $name;
-		foreach (array_slice(func_get_args(), 1) as $key => $value) {
-			$mailer_class->data[$key] = $value;
-		}
-		$mailer_class->build();
+		$args = array_slice(func_get_args(), 1);
+		call_user_func_array(array($mailer_class, 'build'), $args);
 		$mailer_class->render();
 		return $mailer_class;
 	}
