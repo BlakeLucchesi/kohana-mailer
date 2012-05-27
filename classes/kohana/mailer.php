@@ -76,7 +76,7 @@ abstract class Kohana_Mailer {
    * Deliver the email using the specified driver.
    */
   public function deliver() {
-    $this->driver->deliver($this);
+    $this->driver->deliver($this, $this->config->driver_options);
     // Mailer::$log[] = $this;
   }
   
