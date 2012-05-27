@@ -5,7 +5,7 @@ This module provides an interface for creating emails similar to the way ActionM
 
 * A mailer class found in the classes/mailer/ folder.
 * The mailer class should implement a build() function that handles setting up the mailer properties.
-* Corresponding views found in views/mailer/<name>/<name>.(text|html).php.
+* Corresponding views found in views/mailer/__name__/__name__.(text|html).php.
 
 Below is an example showing how to send the mailer in your application and the supporting mailer code.
 
@@ -13,7 +13,6 @@ Below is an example showing how to send the mailer in your application and the s
 		Mailer::factory('<name>', param1, param2);
 
 		# application/classes/mailer/name.php
-
 		Class Mailer_Name extends Mailer {
 		
 				public function build($param1, $param2) {
@@ -25,7 +24,6 @@ Below is an example showing how to send the mailer in your application and the s
 		}
 
 		# applications/view/mailer/name.php
-
 		Some HTML content for the mailer gets built here.
 		
 		<?= $data->param1 ?>
@@ -45,3 +43,19 @@ Available Properties
 **$template** - The name of the template to render for each format. Defaults to $name/$name, which maps to views/mailer/$name/$name.$format.php.  Make sure not to include the $format suffix as part of the template name.
 
 **$layout** - The layout template that should be used as a shell for rendering the template.  By default its set to the 'blank' layout as included in this module.
+
+Issues
+======
+
+Please report any issues, pull requests or feedback into this issue queue.
+
+License (MIT License)
+=====================
+
+Copyright (C) 2012 Blake Lucchesi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
