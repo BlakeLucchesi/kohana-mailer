@@ -15,24 +15,34 @@ class Kohana_Mailer_Driver_Mailgun implements Mailer_Driver {
 		foreach ($mailer->formats as $format) {
 			$fields[$format] = $mailer->content[$format];
 		}
-		
-		$request = curl_init($url);
-		curl_setopt($request, CURLOPT_USERPWD, $apikey);
-		curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+
+		// Build curl request.
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_USERPWD, $apikey);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
 		
 		// Additional curl request options.
-		curl_setopt($request, CURLOPT_MAXREDIRS, 3);
-		curl_setopt($request, CURLOPT_FOLLOWLOCATION, 0);
-		curl_setopt($request, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($request, CURLOPT_VERBOSE, 0);
-		curl_setopt($request, CURLOPT_HEADER, 1);
-		curl_setopt($request, CURLOPT_CONNECTTIMEOUT, 10);
-		curl_setopt($request, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($request, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($request, CURLOPT_POST, true);
-		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-		$response = curl_exec($request);
+		curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_VERBOSE, 0);
+		curl_setopt($ch, CURLOPT_HEADER, 1);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$response = curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		curl_close($ch);
 		
-		curl_close($request);
+		# Success!
+		if ($http_code == 200) {
+			$data = json_decode($response);
+			Kohana::$log->add(Log::INFO, 'Successfully sent ":name" email to :to via Mailgun HTTP API.', array(':name' => $mailer->name, ':to' => $mailer->to));
+		}
+		else {
+			Kohana::$log->add(Log::ERROR, 'Error sending email via mailgun. Details: :details', array(':details' => print_r($response, TRUE)));
+		}
 	}
 }
